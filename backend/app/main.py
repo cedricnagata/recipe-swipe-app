@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from app.core.database import engine, Base
-from app.routers import recipes, chef, filters
+from app.routers import recipes, chef, filters, collection
 
 # Create all tables
 Base.metadata.create_all(bind=engine)
@@ -11,6 +11,7 @@ app = FastAPI(title="Little Chef API")
 app.include_router(recipes.router)
 app.include_router(chef.router)
 app.include_router(filters.router)
+app.include_router(collection.router)
 
 @app.get("/")
 async def root():

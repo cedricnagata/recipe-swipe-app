@@ -1,1 +1,1 @@
-from . import recipes, chef, filters
+from . import recipes, chef, filters, collection
