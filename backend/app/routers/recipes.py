@@ -16,7 +16,7 @@ class RecipeBase(BaseModel):
     ingredients: dict
     steps: List[str]
     source_url: Optional[str] = None
-    image_url: Optional[str] = None
+    images: List[Optional[str]] = []
 
 class RecipeCreate(RecipeBase):
     pass
@@ -61,9 +61,9 @@ def list_recipes(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
 def get_next_recipe_for_swiping(db: Session = Depends(get_db)):
     """
     Get the next recipe for the swipe interface.
-    Later we can add personalization and filtering logic here.
+    Now ensures recipes have at least one image.
     """
-    recipe = db.query(Recipe).filter(Recipe.image_url.isnot(None)).first()
+    recipe = db.query(Recipe).filter(Recipe.images.any()).first()
     if recipe is None:
         raise HTTPException(status_code=404, detail="No recipes available")
     return recipe

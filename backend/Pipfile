@@ -9,12 +9,12 @@ uvicorn = "*"
 sqlalchemy = "*"
 psycopg2-binary = "*"
 python-dotenv = "*"
-beautifulsoup4 = "*"
 requests = "*"
 anthropic = "*"
 pydantic = "*"
 alembic = "*"
 pydantic-settings = "*"
+scrapy = "*"
 
 [dev-packages]
 pytest = "*"
@@ -23,4 +23,4 @@ flake8 = "*"
 mypy = "*"
 
 [requires]
-python_version = "3.12"
+python_version = "3.11"

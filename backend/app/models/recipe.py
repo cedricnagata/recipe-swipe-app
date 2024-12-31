@@ -11,6 +11,6 @@ class Recipe(Base):
     ingredients = Column(JSON, nullable=False)
     steps = Column(ARRAY(Text), nullable=False)
     source_url = Column(String)
-    image_url = Column(String)  # Main recipe image
+    images = Column(ARRAY(String), default=[])  # Array of image URLs
     last_updated = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     hash = Column(String(64))  # for change detection
