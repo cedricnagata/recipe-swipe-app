@@ -15,6 +15,7 @@ pydantic = "*"
 alembic = "*"
 pydantic-settings = "*"
 scrapy = "*"
+crochet = "*"
 
 [dev-packages]
 pytest = "*"
