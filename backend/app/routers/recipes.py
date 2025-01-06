@@ -5,6 +5,10 @@ from app.models import Recipe
 from typing import List, Optional
 from uuid import UUID
 from pydantic import BaseModel
+import logging
+import random
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(
     prefix="/recipes",
@@ -61,9 +65,25 @@ def list_recipes(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
 def get_next_recipe_for_swiping(db: Session = Depends(get_db)):
     """
     Get the next recipe for the swipe interface.
-    Now ensures recipes have at least one image.
     """
-    recipe = db.query(Recipe).filter(Recipe.images.any()).first()
-    if recipe is None:
+    logger.info("Fetching next recipe for swiping")
+    
+    # Get total count of recipes
+    total_recipes = db.query(Recipe).count()
+    logger.info(f"Total recipes in database: {total_recipes}")
+    
+    if total_recipes == 0:
+        logger.warning("No recipes found in database")
         raise HTTPException(status_code=404, detail="No recipes available")
-    return recipe
+    
+    # Get a random recipe
+    random_offset = random.randint(0, total_recipes - 1)
+    recipe = db.query(Recipe).offset(random_offset).limit(1).first()
+    
+    if recipe:
+        logger.info(f"Found recipe: {recipe.title}")
+        logger.info(f"Recipe has {len(recipe.images) if recipe.images else 0} images")
+        return recipe
+    else:
+        logger.error("Failed to get random recipe")
+        raise HTTPException(status_code=404, detail="No recipes available")
