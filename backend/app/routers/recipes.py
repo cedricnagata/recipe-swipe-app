@@ -21,6 +21,8 @@ class RecipeBase(BaseModel):
     steps: List[str]
     source_url: Optional[str] = None
     images: List[Optional[str]] = []
+    total_time: Optional[int] = None
+    tags: List[str] = []
 
 class RecipeCreate(RecipeBase):
     pass
@@ -45,16 +47,6 @@ def get_recipe(recipe_id: UUID, db: Session = Depends(get_db)):
     if recipe is None:
         raise HTTPException(status_code=404, detail="Recipe not found")
     return recipe
-
-@router.delete("/{recipe_id}")
-def delete_recipe(recipe_id: UUID, db: Session = Depends(get_db)):
-    recipe = db.query(Recipe).filter(Recipe.id == recipe_id).first()
-    if recipe is None:
-        raise HTTPException(status_code=404, detail="Recipe not found")
-    
-    db.delete(recipe)
-    db.commit()
-    return {"message": f"Recipe {recipe_id} deleted successfully"}
 
 @router.get("/", response_model=List[RecipeResponse])
 def list_recipes(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):

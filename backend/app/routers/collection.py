@@ -16,13 +16,16 @@ router = APIRouter(
     tags=["collection"]
 )
 
+class ScrapeRequest(BaseModel):
+    max_recipes: int = 100  # Default to 100 if not specified
+
 @router.post("/scrape-from-topics")
-def scrape_from_topics(db: Session = Depends(get_db)):
+def scrape_from_topics(request: ScrapeRequest, db: Session = Depends(get_db)):
     """
     Scrape first recipe from each topic in AllRecipes A-Z listing
     """
     try:
-        scraper = ScraperService()
+        scraper = ScraperService(max_recipes=request.max_recipes)
         logger.info("Starting bulk scrape from topics")
         
         # Recipes will be processed and saved to the database as they're scraped

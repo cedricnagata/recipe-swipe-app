@@ -14,10 +14,11 @@ from scrapy.signalmanager import dispatcher
 setup()
 
 class ScraperService:
-    def __init__(self):
+    def __init__(self, max_recipes):
         configure_logging()
         os.environ['SCRAPY_SETTINGS_MODULE'] = 'app.scraper.settings.settings'
         self.runner = CrawlerRunner(get_project_settings())
+        self.max_recipes = max_recipes
         self.items = []
 
     def _item_scraped(self, item, response, spider):
@@ -34,7 +35,7 @@ class ScraperService:
         dispatcher.connect(self._item_scraped, signal=signals.item_scraped)
         
         # Start the crawl with the database session
-        d = self.runner.crawl(AllrecipesCrawlerSpider, db_session=db_session)
+        d = self.runner.crawl(AllrecipesCrawlerSpider, db_session=db_session, max_recipes=self.max_recipes)
         
         # Return the items after the crawl is done
         return d.addCallback(lambda _: self.items)
