@@ -21,10 +21,12 @@ struct SwipeView: View {
                     ProgressView()
                 } else if let recipe = viewModel.currentRecipe {
                     RecipeCardView(recipe: recipe) { swipedRight in
-                        if swipedRight {
-                            viewModel.swipeRight()
-                        } else {
-                            viewModel.swipeLeft()
+                        Task {
+                            if swipedRight {
+                                await viewModel.swipeRight()
+                            } else {
+                                await viewModel.swipeLeft()
+                            }
                         }
                     }
                     .animation(.default, value: recipe.id)
@@ -36,7 +38,9 @@ struct SwipeView: View {
             }
         }
         .onAppear {
-            viewModel.fetchNextRecipe()
+            Task {
+                await viewModel.startNewSession()
+            }
         }
         .alert("Error", isPresented: .constant(viewModel.error != nil)) {
             Button("OK") {

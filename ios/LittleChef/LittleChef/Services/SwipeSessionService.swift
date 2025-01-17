@@ -1,0 +1,34 @@
+import Foundation
+
+class SwipeSessionService {
+    static let shared = SwipeSessionService()
+    private let networkService = NetworkService.shared
+    
+    private init() {}
+    
+    func startSession() async throws -> UUID {
+        struct SessionResponse: Codable {
+            let sessionId: UUID
+        }
+        let response: SessionResponse = try await networkService.fetch("/swipe-sessions/start", method: .post)
+        return response.sessionId
+    }
+    
+    func registerSwipe(sessionId: UUID, recipeId: UUID, liked: Bool, save: Bool) async throws {
+        let endpoint = "/swipe-sessions/\(sessionId)/swipe/\(recipeId)?liked=\(liked)&save=\(save)"
+        try await networkService.fetch(endpoint, method: .post)
+    }
+    
+    func getNextRecipe(sessionId: UUID) async throws -> Recipe {
+        let recipeDTO: RecipeDTO = try await networkService.fetch("/swipe-sessions/\(sessionId)/next")
+        return recipeDTO.toRecipe()
+    }
+    
+    func getSessionStats(sessionId: UUID) async throws -> SessionStats {
+        try await networkService.fetch("/swipe-sessions/\(sessionId)/stats")
+    }
+    
+    func endSession(sessionId: UUID) async throws {
+        try await networkService.fetch("/swipe-sessions/\(sessionId)", method: .delete)
+    }
+}

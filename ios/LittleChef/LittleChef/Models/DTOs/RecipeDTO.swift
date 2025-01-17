@@ -7,13 +7,10 @@ struct RecipeDTO: Codable {
     let steps: [String]
     let sourceUrl: String
     let images: [String?]
-    
-    enum CodingKeys: String, CodingKey {
-        case id
-        case title
-        case ingredients
-        case steps
-        case sourceUrl = "source_url"
-        case images
-    }
+    let totalTime: Int?
+    let tags: [String]
+    let hash: String
+
+    // We don't need CodingKeys anymore since we're using .convertFromSnakeCase
+    // in NetworkService's JSONDecoder
 }

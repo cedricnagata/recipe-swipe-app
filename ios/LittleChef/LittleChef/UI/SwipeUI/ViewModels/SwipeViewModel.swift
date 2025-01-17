@@ -6,38 +6,104 @@ class SwipeViewModel: ObservableObject {
     @Published var currentRecipe: Recipe?
     @Published var isLoading = false
     @Published var error: String?
+    @Published var sessionStats: SessionStats?
     
-    private let recipeService = RecipeService.shared
+    private var currentSessionId: UUID?
+    private let swipeSessionService = SwipeSessionService.shared
+    private let savedRecipeService = SavedRecipeService.shared
     
-    func fetchNextRecipe() {
-        Task {
-            isLoading = true
-            error = nil
-            currentRecipe = nil  // Clear current recipe while loading
+    func startNewSession() async {
+        isLoading = true
+        error = nil
+        
+        do {
+            currentSessionId = try await swipeSessionService.startSession()
+            print("✅ Started new session: \(currentSessionId?.uuidString ?? "unknown")")
+            await fetchNextRecipe()
+        } catch {
+            print("❌ Error starting session: \(error)")
+            self.error = error.localizedDescription
+        }
+        
+        isLoading = false
+    }
+    
+    func fetchNextRecipe() async {
+        guard let sessionId = currentSessionId else {
+            print("❌ No active session")
+            await startNewSession()
+            return
+        }
+        
+        isLoading = true
+        error = nil
+        currentRecipe = nil  // Clear current recipe while loading
+        
+        do {
+            print("🔄 Fetching next recipe...")
+            let nextRecipe = try await swipeSessionService.getNextRecipe(sessionId: sessionId)
+            print("✅ Fetched recipe: \(nextRecipe.title)")
             
-            do {
-                print("🔄 Fetching next recipe...")
-                let nextRecipe = try await recipeService.fetchNextRecipe()
-                print("✅ Fetched recipe: \(nextRecipe.title)")
-                withAnimation {
-                    currentRecipe = nextRecipe
-                }
-            } catch {
-                print("❌ Error fetching recipe: \(error)")
-                self.error = error.localizedDescription
+            // Update session stats
+            sessionStats = try await swipeSessionService.getSessionStats(sessionId: sessionId)
+            
+            withAnimation {
+                currentRecipe = nextRecipe
             }
-            
-            isLoading = false
+        } catch {
+            print("❌ Error fetching recipe: \(error)")
+            self.error = error.localizedDescription
+        }
+        
+        isLoading = false
+    }
+    
+    func swipeRight(saveRecipe: Bool = true) async {
+        guard let sessionId = currentSessionId, let recipe = currentRecipe else { return }
+        
+        print("👍 Swiped right on: \(recipe.title)")
+        
+        do {
+            try await swipeSessionService.registerSwipe(
+                sessionId: sessionId,
+                recipeId: recipe.id,
+                liked: true,
+                save: saveRecipe
+            )
+            await fetchNextRecipe()
+        } catch {
+            self.error = error.localizedDescription
         }
     }
     
-    func swipeRight() {
-        print("👍 Swiped right on: \(currentRecipe?.title ?? "unknown")")
-        fetchNextRecipe()
+    func swipeLeft() async {
+        guard let sessionId = currentSessionId, let recipe = currentRecipe else { return }
+        
+        print("👎 Swiped left on: \(recipe.title)")
+        
+        do {
+            try await swipeSessionService.registerSwipe(
+                sessionId: sessionId,
+                recipeId: recipe.id,
+                liked: false,
+                save: false
+            )
+            await fetchNextRecipe()
+        } catch {
+            self.error = error.localizedDescription
+        }
     }
     
-    func swipeLeft() {
-        print("👎 Swiped left on: \(currentRecipe?.title ?? "unknown")")
-        fetchNextRecipe()
+    func endSession() async {
+        guard let sessionId = currentSessionId else { return }
+        
+        do {
+            try await swipeSessionService.endSession(sessionId: sessionId)
+            currentSessionId = nil
+            currentRecipe = nil
+            sessionStats = nil
+        } catch {
+            self.error = error.localizedDescription
+        }
     }
 }
