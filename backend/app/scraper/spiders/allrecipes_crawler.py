@@ -116,23 +116,16 @@ class AllrecipesCrawlerSpider(scrapy.Spider):
             tags = response.css('meta[name="parsely-tags"]::attr(content)').get()
             tags = [tag.strip() for tag in tags.split(',')] if tags else []
 
-            # Extract images
-            images = []
-            seen_images = set()
-            ribbon_images = response.css('#article__photo-ribbon_1-0 img::attr(data-src)').getall()
-            
-            for img_url in ribbon_images:
-                if img_url:
-                    normalized_url = urlparse(img_url).path
-                    if normalized_url not in seen_images:
-                        seen_images.add(normalized_url)
-                        images.append(img_url)
-                        
-                    if len(images) >= 5:
-                        break
+            # Get the final high-res image (completed recipe)
+            # Find all recipe step images
+            step_images = response.css('figure.mntl-sc-block-image img::attr(data-hi-res-src)').getall()
+            step_images.reverse()
 
-            while len(images) < 5:
-                images.append(None)
+            while len(step_images) < 5:
+                step_images.append(None)
+            
+            # Get the last image (final step/completed recipe) or None if no images
+            step_images = step_images[:5]
 
             # Create recipe data
             recipe_data = {
@@ -140,7 +133,7 @@ class AllrecipesCrawlerSpider(scrapy.Spider):
                 'ingredients': ingredients,
                 'steps': steps,
                 'source_url': response.url,
-                'images': images,
+                'images':step_images,
                 'total_time': total_time,
                 'tags': tags
             }

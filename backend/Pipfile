@@ -4,7 +4,6 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-fastapi = "*"
 uvicorn = "*"
 sqlalchemy = "*"
 psycopg2-binary = "*"
@@ -16,6 +15,7 @@ alembic = "*"
 pydantic-settings = "*"
 scrapy = "*"
 crochet = "*"
+fastapi = {extras = ["standard"], version = "*"}
 
 [dev-packages]
 pytest = "*"
