@@ -85,20 +85,28 @@ class AllrecipesCrawlerSpider(scrapy.Spider):
             # Extract title
             title = response.css('title::text').get().strip().replace(' Recipe', '')
 
-            # Extract ingredients
+            # Extract ingredients with safer parsing
             ingredients = {}
             ingredient_elements = response.css('.mm-recipes-structured-ingredients__list-item')
             for element in ingredient_elements:
-                quantity = element.css('[data-ingredient-quantity]::text').get().strip()
-                unit = element.css('[data-ingredient-unit]::text').get()
-                unit = unit.strip() if unit else ''
-                name = element.css('[data-ingredient-name]::text').get().strip()
+                # Safely get quantity, defaulting to empty string if None
+                quantity = element.css('[data-ingredient-quantity]::text').get() or ''
+                quantity = quantity.strip()
                 
+                # Safely get unit, defaulting to empty string if None
+                unit = element.css('[data-ingredient-unit]::text').get() or ''
+                unit = unit.strip()
+                
+                # Safely get name, defaulting to empty string if None
+                name = element.css('[data-ingredient-name]::text').get() or ''
+                name = name.strip()
+                
+                # Only add if we have a valid ingredient name
                 if name:
                     full_amount = f"{quantity} {unit}".strip()
                     ingredients[name] = full_amount
 
-            # Extract steps
+            # Extract steps with safer parsing
             steps = []
             step_elements = response.css('.mm-recipes-steps__content .mntl-sc-block-group--OL .mntl-sc-block-html')
             for step in step_elements:
@@ -116,16 +124,14 @@ class AllrecipesCrawlerSpider(scrapy.Spider):
             tags = response.css('meta[name="parsely-tags"]::attr(content)').get()
             tags = [tag.strip() for tag in tags.split(',')] if tags else []
 
-            # Get the final high-res image (completed recipe)
-            # Find all recipe step images
+            # Get recipe step images
             step_images = response.css('figure.mntl-sc-block-image img::attr(data-hi-res-src)').getall()
-            step_images.reverse()
+            step_images.reverse()  # Reverse to get final image first
 
+            # Ensure we have exactly 5 image slots (fill with None if needed)
             while len(step_images) < 5:
                 step_images.append(None)
-            
-            # Get the last image (final step/completed recipe) or None if no images
-            step_images = step_images[:5]
+            step_images = step_images[:5]  # Limit to 5 images
 
             # Create recipe data
             recipe_data = {
@@ -133,7 +139,7 @@ class AllrecipesCrawlerSpider(scrapy.Spider):
                 'ingredients': ingredients,
                 'steps': steps,
                 'source_url': response.url,
-                'images':step_images,
+                'images': step_images,
                 'total_time': total_time,
                 'tags': tags
             }
@@ -143,6 +149,11 @@ class AllrecipesCrawlerSpider(scrapy.Spider):
                 json.dumps(recipe_data, sort_keys=True).encode()
             ).hexdigest()
             recipe_data['hash'] = content_hash
+
+            # Skip if no ingredients or steps were found
+            if not ingredients or not steps:
+                self.logger.warning(f"Skipping recipe '{title}' due to missing ingredients or steps")
+                return
 
             self.recipes_count += 1
             self.logger.info(f"Successfully scraped recipe {self.recipes_count}/{self.max_recipes}: {title}")

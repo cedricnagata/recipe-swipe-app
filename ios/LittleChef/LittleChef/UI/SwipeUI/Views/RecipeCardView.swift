@@ -14,11 +14,10 @@ struct RecipeCardView: View {
     
     #if os(iOS)
     private let cardWidth: CGFloat = UIScreen.main.bounds.width - 40
-    // Reduced the height to better fit landscape images
-    private let cardHeight: CGFloat = UIScreen.main.bounds.height * 0.55  // Changed from 0.7 to 0.55
+    private let cardHeight: CGFloat = UIScreen.main.bounds.height * 0.55
     #else
     private let cardWidth: CGFloat = 300
-    private let cardHeight: CGFloat = 400  // Adjusted for landscape
+    private let cardHeight: CGFloat = 400
     #endif
     
     private let swipeThreshold: CGFloat = 120
@@ -32,19 +31,34 @@ struct RecipeCardView: View {
             VStack(spacing: 0) {
                 // Image carousel
                 TabView(selection: $currentImageIndex) {
-                    ForEach(recipe.images.indices, id: \.self) { index in
-                        if let imageUrl = recipe.images[index] {
-                            GeometryReader { geometry in
-                                AsyncImage(url: URL(string: imageUrl)) { image in
-                                    ZStack {
-                                        Color(.systemGray6)
-                                        image
-                                            .resizable()
-                                            .scaledToFit()
-                                            .frame(maxWidth: geometry.size.width, maxHeight: geometry.size.height)
+                    if recipe.images.isEmpty || recipe.images.allSatisfy({ $0 == nil }) {
+                        // No photos placeholder
+                        VStack {
+                            Image(systemName: "photo.fill")
+                                .font(.system(size: 40))
+                                .foregroundColor(.gray.opacity(0.5))
+                            Text("No photos available")
+                                .font(.headline)
+                                .foregroundColor(.gray)
+                        }
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .background(Color.gray.opacity(0.1))
+                    } else {
+                        ForEach(recipe.images.indices, id: \.self) { index in
+                            if let imageUrl = recipe.images[index],
+                               let url = URL(string: imageUrl) {
+                                GeometryReader { geometry in
+                                    AsyncImage(url: url) { image in
+                                        ZStack {
+                                            Color(.systemGray6)
+                                            image
+                                                .resizable()
+                                                .scaledToFit()
+                                                .frame(maxWidth: geometry.size.width, maxHeight: geometry.size.height)
+                                        }
+                                    } placeholder: {
+                                        ProgressView()
                                     }
-                                } placeholder: {
-                                    ProgressView()
                                 }
                             }
                         }
@@ -53,17 +67,17 @@ struct RecipeCardView: View {
                 #if os(iOS)
                 .tabViewStyle(PageTabViewStyle())
                 #endif
-                .frame(height: cardHeight * 0.6)  // Adjusted image height ratio
+                .frame(height: cardHeight * 0.6)
                 .clipShape(RoundedRectangle(cornerRadius: 15))
                 
-                // Recipe details - made more compact
-                VStack(alignment: .leading, spacing: 8) {  // Reduced spacing from 12 to 8
+                // Recipe details
+                VStack(alignment: .leading, spacing: 8) {
                     Text(recipe.title)
-                        .font(.title3)  // Changed from .title2 to .title3
+                        .font(.title3)
                         .fontWeight(.bold)
                         .lineLimit(2)
                     
-                    HStack(spacing: 16) {  // Combined stats into a single row
+                    HStack(spacing: 16) {
                         Text("\(recipe.ingredientCount) ingredients")
                             .font(.subheadline)
                             .foregroundColor(.gray)
@@ -74,7 +88,7 @@ struct RecipeCardView: View {
                     }
                 }
                 .padding(.horizontal)
-                .padding(.vertical, 12)  // Reduced vertical padding
+                .padding(.vertical, 12)
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
             

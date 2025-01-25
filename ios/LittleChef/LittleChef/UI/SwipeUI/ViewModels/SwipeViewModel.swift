@@ -7,6 +7,7 @@ class SwipeViewModel: ObservableObject {
     @Published var isLoading = false
     @Published var error: String?
     @Published var sessionStats: SessionStats?
+    @Published var sessionStarted = false
     
     private var currentSessionId: UUID?
     private let swipeSessionService = SwipeSessionService.shared
@@ -15,10 +16,12 @@ class SwipeViewModel: ObservableObject {
     func startNewSession() async {
         isLoading = true
         error = nil
+        sessionStarted = false
         
         do {
             currentSessionId = try await swipeSessionService.startSession()
             print("✅ Started new session: \(currentSessionId?.uuidString ?? "unknown")")
+            sessionStarted = true
             await fetchNextRecipe()
         } catch {
             print("❌ Error starting session: \(error)")
@@ -31,7 +34,6 @@ class SwipeViewModel: ObservableObject {
     func fetchNextRecipe() async {
         guard let sessionId = currentSessionId else {
             print("❌ No active session")
-            await startNewSession()
             return
         }
         
@@ -102,6 +104,7 @@ class SwipeViewModel: ObservableObject {
             currentSessionId = nil
             currentRecipe = nil
             sessionStats = nil
+            sessionStarted = false
         } catch {
             self.error = error.localizedDescription
         }
