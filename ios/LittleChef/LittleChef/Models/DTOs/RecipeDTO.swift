@@ -10,7 +10,5 @@ struct RecipeDTO: Codable {
     let totalTime: Int?
     let tags: [String]
     let hash: String
-
-    // We don't need CodingKeys anymore since we're using .convertFromSnakeCase
-    // in NetworkService's JSONDecoder
+    let isSaved: Bool
 }

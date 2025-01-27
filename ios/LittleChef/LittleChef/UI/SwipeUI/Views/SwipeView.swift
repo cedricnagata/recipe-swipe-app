@@ -52,22 +52,16 @@ struct SwipeView: View {
                     }
                 } else if let recipe = viewModel.currentRecipe {
                     VStack {
-                        // Session stats
-                        if let stats = viewModel.sessionStats {
-                            HStack {
-                                Label("\(stats.seenRecipes) recipes seen", systemImage: "eye.fill")
-                                Spacer()
-                                Button("End Session") {
-                                    Task {
-                                        await viewModel.endSession()
-                                        dismiss()
-                                    }
+                        HStack {
+                            Spacer()
+                            Button("End Session") {
+                                Task {
+                                    await viewModel.endSession()
+                                    dismiss()
                                 }
-                                .foregroundStyle(.red)
                             }
-                            .font(.caption)
+                            .foregroundStyle(.red)
                             .padding(.horizontal)
-                            .padding(.vertical, 8)
                         }
                         
                         // Recipe card
@@ -111,11 +105,5 @@ struct SwipeView: View {
                 Text(error)
             }
         }
-    }
-}
-
-#Preview {
-    NavigationStack {
-        SwipeView()
     }
 }

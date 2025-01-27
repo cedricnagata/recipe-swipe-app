@@ -1,29 +1,18 @@
 from pydantic import BaseModel
-from typing import List, Optional, Dict
+from typing import List, Optional
 from uuid import UUID
 
-class RecipeBase(BaseModel):
+class Recipe(BaseModel):
+    id: UUID
     title: str
-    ingredients: Dict[str, str]
+    ingredients: dict
     steps: List[str]
     source_url: Optional[str] = None
     images: List[Optional[str]] = []
     total_time: Optional[int] = None
     tags: List[str] = []
-
-class RecipeCreate(RecipeBase):
-    pass
-
-class Recipe(RecipeBase):
-    id: UUID
-    hash: Optional[str] = None
-
-    class Config:
-        from_attributes = True
-
-class SavedRecipeResponse(BaseModel):
-    recipe_id: UUID
-    saved_at: str
+    hash: str
+    is_saved: bool = False
 
     class Config:
         from_attributes = True

@@ -24,10 +24,6 @@ class SwipeSessionService {
         return recipeDTO.toRecipe()
     }
     
-    func getSessionStats(sessionId: UUID) async throws -> SessionStats {
-        try await networkService.fetch("/swipe-sessions/\(sessionId)/stats")
-    }
-    
     func endSession(sessionId: UUID) async throws {
         try await networkService.fetch("/swipe-sessions/\(sessionId)", method: .delete)
     }

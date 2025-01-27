@@ -6,12 +6,10 @@ class SwipeViewModel: ObservableObject {
     @Published var currentRecipe: Recipe?
     @Published var isLoading = false
     @Published var error: String?
-    @Published var sessionStats: SessionStats?
     @Published var sessionStarted = false
     
     private var currentSessionId: UUID?
     private let swipeSessionService = SwipeSessionService.shared
-    private let savedRecipeService = SavedRecipeService.shared
     
     func startNewSession() async {
         isLoading = true
@@ -20,11 +18,9 @@ class SwipeViewModel: ObservableObject {
         
         do {
             currentSessionId = try await swipeSessionService.startSession()
-            print("✅ Started new session: \(currentSessionId?.uuidString ?? "unknown")")
             sessionStarted = true
             await fetchNextRecipe()
         } catch {
-            print("❌ Error starting session: \(error)")
             self.error = error.localizedDescription
         }
         
@@ -32,28 +28,18 @@ class SwipeViewModel: ObservableObject {
     }
     
     func fetchNextRecipe() async {
-        guard let sessionId = currentSessionId else {
-            print("❌ No active session")
-            return
-        }
+        guard let sessionId = currentSessionId else { return }
         
         isLoading = true
         error = nil
         currentRecipe = nil  // Clear current recipe while loading
         
         do {
-            print("🔄 Fetching next recipe...")
             let nextRecipe = try await swipeSessionService.getNextRecipe(sessionId: sessionId)
-            print("✅ Fetched recipe: \(nextRecipe.title)")
-            
-            // Update session stats
-            sessionStats = try await swipeSessionService.getSessionStats(sessionId: sessionId)
-            
             withAnimation {
                 currentRecipe = nextRecipe
             }
         } catch {
-            print("❌ Error fetching recipe: \(error)")
             self.error = error.localizedDescription
         }
         
@@ -62,8 +48,6 @@ class SwipeViewModel: ObservableObject {
     
     func swipeRight(saveRecipe: Bool = true) async {
         guard let sessionId = currentSessionId, let recipe = currentRecipe else { return }
-        
-        print("👍 Swiped right on: \(recipe.title)")
         
         do {
             try await swipeSessionService.registerSwipe(
@@ -80,8 +64,6 @@ class SwipeViewModel: ObservableObject {
     
     func swipeLeft() async {
         guard let sessionId = currentSessionId, let recipe = currentRecipe else { return }
-        
-        print("👎 Swiped left on: \(recipe.title)")
         
         do {
             try await swipeSessionService.registerSwipe(
@@ -103,7 +85,6 @@ class SwipeViewModel: ObservableObject {
             try await swipeSessionService.endSession(sessionId: sessionId)
             currentSessionId = nil
             currentRecipe = nil
-            sessionStats = nil
             sessionStarted = false
         } catch {
             self.error = error.localizedDescription

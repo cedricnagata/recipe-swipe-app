@@ -13,12 +13,9 @@ class SavedRecipesViewModel: ObservableObject {
         error = nil
         
         do {
-            print("🔄 Fetching saved recipes...")
             let fetchedRecipes = try await savedRecipeService.getSavedRecipes()
-            print("✅ Fetched \(fetchedRecipes.count) saved recipes")
             recipes = fetchedRecipes
         } catch {
-            print("❌ Error fetching saved recipes: \(error)")
             self.error = error.localizedDescription
         }
         
@@ -26,22 +23,21 @@ class SavedRecipesViewModel: ObservableObject {
     }
     
     func unsaveRecipe(_ recipe: Recipe) async {
+        guard !isLoading else { return }
+        isLoading = true
+        
         do {
-            print("🗑️ Starting delete operation for recipe: \(recipe.title)")
-            // First update the UI
-            recipes.removeAll { $0.id == recipe.id }
-            
-            // Then delete from backend
+            // First try to delete from backend
             try await savedRecipeService.unsaveRecipe(recipeId: recipe.id)
-            print("✅ Successfully deleted recipe from backend")
             
-            // Refresh the list to ensure sync
+            // If successful, update the local state
             await fetchSavedRecipes()
         } catch {
-            print("❌ Error deleting recipe: \(error)")
             self.error = "Failed to delete recipe: \(error.localizedDescription)"
-            // Refresh the list to ensure UI is in sync with backend
+            // Refresh to ensure UI is in sync with backend
             await fetchSavedRecipes()
         }
+        
+        isLoading = false
     }
 }
