@@ -7,6 +7,7 @@ class SwipeViewModel: ObservableObject {
     @Published var isLoading = false
     @Published var error: String?
     @Published var sessionStarted = false
+    @Published var hasMoreRecipes = true
     
     private var currentSessionId: UUID?
     private let swipeSessionService = SwipeSessionService.shared
@@ -15,6 +16,7 @@ class SwipeViewModel: ObservableObject {
         isLoading = true
         error = nil
         sessionStarted = false
+        hasMoreRecipes = true
         
         do {
             currentSessionId = try await swipeSessionService.startSession()
@@ -35,9 +37,13 @@ class SwipeViewModel: ObservableObject {
         currentRecipe = nil  // Clear current recipe while loading
         
         do {
-            let nextRecipe = try await swipeSessionService.getNextRecipe(sessionId: sessionId)
-            withAnimation {
-                currentRecipe = nextRecipe
+            let result = try await swipeSessionService.getNextRecipe(sessionId: sessionId)
+            hasMoreRecipes = result.hasMoreRecipes
+            
+            if hasMoreRecipes {
+                withAnimation {
+                    currentRecipe = result.recipe
+                }
             }
         } catch {
             self.error = error.localizedDescription
@@ -86,6 +92,7 @@ class SwipeViewModel: ObservableObject {
             currentSessionId = nil
             currentRecipe = nil
             sessionStarted = false
+            hasMoreRecipes = true
         } catch {
             self.error = error.localizedDescription
         }

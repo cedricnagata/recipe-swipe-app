@@ -4,10 +4,11 @@ from sqlalchemy import event
 from app.core.database import get_db
 from app.models import Recipe, SavedRecipe, SwipeSession
 from app.schemas.recipe import Recipe as RecipeSchema
-from typing import Optional, List, Dict
+from typing import Optional, List, Dict, Union
 from uuid import UUID
 import random
 from sqlalchemy.orm.attributes import flag_modified
+from pydantic import BaseModel
 
 router = APIRouter(
     prefix="/swipe-sessions",
@@ -17,6 +18,10 @@ router = APIRouter(
 LIKE_WEIGHT = 1.0
 DISLIKE_WEIGHT = -0.5
 DEFAULT_WEIGHT = 0.0
+
+class NextRecipeResponse(BaseModel):
+    has_more_recipes: bool
+    recipe: Optional[RecipeSchema] = None
 
 @router.post("/start")
 async def start_session(db: Session = Depends(get_db)):
@@ -51,7 +56,9 @@ async def register_swipe(
     # Update seen recipes
     if session.seen_recipes is None:
         session.seen_recipes = []
-        
+    
+    print(f"Current seen recipes: {session.seen_recipes}")
+    
     if recipe_id not in session.seen_recipes:
         # Create a new list and assign it
         new_seen_recipes = list(session.seen_recipes)
@@ -59,6 +66,7 @@ async def register_swipe(
         session.seen_recipes = new_seen_recipes
         # Mark as modified
         flag_modified(session, "seen_recipes")
+        print(f"Updated seen recipes to: {session.seen_recipes}")
     
     # Update tag weights
     if session.tag_weights is None:
@@ -79,12 +87,14 @@ async def register_swipe(
             saved_recipe = SavedRecipe(recipe_id=recipe_id)
             db.add(saved_recipe)
 
+    print("Committing changes...")
     db.commit()
     db.refresh(session)
+    print(f"After commit - seen_recipes: {session.seen_recipes}")
     
     return {"message": "Swipe registered successfully"}
 
-@router.get("/{session_id}/next", response_model=RecipeSchema)
+@router.get("/{session_id}/next", response_model=NextRecipeResponse)
 async def get_next_recipe(session_id: UUID, db: Session = Depends(get_db)):
     """Get next recipe based on session preferences"""
     print(f"\n--- Getting next recipe for session {session_id} ---")
@@ -102,17 +112,15 @@ async def get_next_recipe(session_id: UUID, db: Session = Depends(get_db)):
     total_recipes = db.query(Recipe).count()
     seen_recipe_ids = session.seen_recipes or []
     
+    print(f"Total recipes: {total_recipes}")
+    print(f"Seen recipes: {seen_recipe_ids}")
+    
     unseen_recipes = db.query(Recipe).filter(Recipe.id.notin_(seen_recipe_ids)).all()
+    print(f"Unseen recipes: {len(unseen_recipes)}")
     
     if not unseen_recipes:
         print("No more unseen recipes!")
-        raise HTTPException(
-            status_code=404, 
-            detail={
-                "message": "No more unseen recipes available",
-                "code": "NO_MORE_RECIPES"
-            }
-        )
+        return NextRecipeResponse(has_more_recipes=False)
 
     # Calculate recipe scores
     tag_weights = session.tag_weights or {}
@@ -155,7 +163,7 @@ async def get_next_recipe(session_id: UUID, db: Session = Depends(get_db)):
         "is_saved": is_saved
     }
     
-    return recipe_dict
+    return NextRecipeResponse(has_more_recipes=True, recipe=recipe_dict)
 
 @router.delete("/{session_id}")
 async def end_session(session_id: UUID, db: Session = Depends(get_db)):
@@ -165,6 +173,7 @@ async def end_session(session_id: UUID, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Session not found")
 
     print(f"Ending session {session_id}")
+    print(f"Final seen_recipes: {session.seen_recipes}")
     
     db.delete(session)
     db.commit()

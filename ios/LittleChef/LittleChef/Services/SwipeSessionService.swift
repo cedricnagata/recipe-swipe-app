@@ -19,9 +19,12 @@ class SwipeSessionService {
         try await networkService.fetch(endpoint, method: .post)
     }
     
-    func getNextRecipe(sessionId: UUID) async throws -> Recipe {
-        let recipeDTO: RecipeDTO = try await networkService.fetch("/swipe-sessions/\(sessionId)/next")
-        return recipeDTO.toRecipe()
+    func getNextRecipe(sessionId: UUID) async throws -> (hasMoreRecipes: Bool, recipe: Recipe?) {
+        let response: NextRecipeResponse = try await networkService.fetch("/swipe-sessions/\(sessionId)/next")
+        return (
+            hasMoreRecipes: response.hasMoreRecipes,
+            recipe: response.recipe?.toRecipe()
+        )
     }
     
     func endSession(sessionId: UUID) async throws {

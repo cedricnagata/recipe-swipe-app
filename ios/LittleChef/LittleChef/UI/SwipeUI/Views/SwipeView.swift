@@ -50,19 +50,38 @@ struct SwipeView: View {
                                 .padding(.horizontal)
                         }
                     }
+                } else if !viewModel.hasMoreRecipes {
+                    VStack(spacing: 16) {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.system(size: 60))
+                            .foregroundColor(.green)
+                        
+                        Text("All Done!")
+                            .font(.title2)
+                            .fontWeight(.semibold)
+                        
+                        Text("You've seen all available recipes")
+                            .foregroundStyle(.secondary)
+                        
+                        Button {
+                            Task {
+                                await viewModel.endSession()
+                                dismiss()
+                            }
+                        } label: {
+                            Text("End Session")
+                                .font(.headline)
+                                .foregroundStyle(.white)
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(Color.blue)
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                                .padding(.horizontal)
+                        }
+                    }
                 } else if let recipe = viewModel.currentRecipe {
                     VStack {
-                        HStack {
-                            Spacer()
-                            Button("End Session") {
-                                Task {
-                                    await viewModel.endSession()
-                                    dismiss()
-                                }
-                            }
-                            .foregroundStyle(.red)
-                            .padding(.horizontal)
-                        }
+                        Spacer()
                         
                         // Recipe card
                         RecipeCardView(recipe: recipe) { swipedRight in
@@ -76,13 +95,10 @@ struct SwipeView: View {
                         }
                         .animation(.default, value: recipe.id)
                         .id(recipe.id)  // Force view refresh on recipe change
-                    }
-                } else {
-                    VStack(spacing: 16) {
-                        Text("No more recipes")
-                            .font(.title2)
-                            .foregroundStyle(.secondary)
                         
+                        Spacer()
+                        
+                        // End Session button at bottom
                         Button("End Session") {
                             Task {
                                 await viewModel.endSession()
@@ -90,6 +106,7 @@ struct SwipeView: View {
                             }
                         }
                         .foregroundStyle(.red)
+                        .padding(.bottom, 20)
                     }
                 }
             }

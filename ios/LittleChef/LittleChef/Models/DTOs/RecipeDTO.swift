@@ -12,3 +12,8 @@ struct RecipeDTO: Codable {
     let hash: String
     let isSaved: Bool
 }
+
+struct NextRecipeResponse: Codable {
+    let hasMoreRecipes: Bool
+    let recipe: RecipeDTO?
+}
