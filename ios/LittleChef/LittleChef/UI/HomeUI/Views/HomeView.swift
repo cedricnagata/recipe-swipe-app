@@ -38,26 +38,6 @@ struct HomeView: View {
                             color: .red
                         )
                     }
-                    
-                    // Cook Mode
-                    NavigationLink(destination: LittleChefView(recipe: nil)) {
-                        HomeActionCard(
-                            title: "Cook Mode",
-                            subtitle: "AI cooking assistance",
-                            iconName: "figure.2.and.child.holdinghands",
-                            color: .green
-                        )
-                    }
-                    
-                    // Preferences
-                    NavigationLink(destination: PreferencesView()) {
-                        HomeActionCard(
-                            title: "Preferences",
-                            subtitle: "Customize your experience",
-                            iconName: "gearshape.fill",
-                            color: .gray
-                        )
-                    }
                 }
                 .padding(.horizontal)
             }

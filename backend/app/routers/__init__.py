@@ -1,1 +1,1 @@
-from . import chef, collection, saved_recipes, swipe_sessions
+from . import collection, saved_recipes, swipe_sessions
