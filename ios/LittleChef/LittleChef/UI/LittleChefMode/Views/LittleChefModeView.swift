@@ -159,20 +159,6 @@ private struct RecipeStepsView: View {
     }
 }
 
-private struct ChefChatView: View {
-    let recipe: Recipe
-    
-    var body: some View {
-        Color.clear
-    }
-}
-
-private struct TimersView: View {
-    var body: some View {
-        Color.clear
-    }
-}
-
 #Preview {
     NavigationStack {
         LittleChefModeView(recipe: Recipe(
