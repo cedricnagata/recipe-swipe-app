@@ -13,6 +13,7 @@ class Recipe(Base):
     source_url = Column(String)
     images = Column(ARRAY(String), default=[])
     total_time = Column(Integer, nullable=True)  # in minutes
+    servings = Column(Integer, nullable=True)    # number of servings
     tags = Column(ARRAY(String), default=[])
     last_updated = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     hash = Column(String(64))  # for change detection

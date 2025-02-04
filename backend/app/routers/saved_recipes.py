@@ -33,6 +33,7 @@ async def get_saved_recipes(db: Session = Depends(get_db)):
             "source_url": recipe.source_url,
             "images": recipe.images,
             "total_time": recipe.total_time,
+            "servings": recipe.servings,  # Added servings field
             "tags": recipe.tags,
             "hash": recipe.hash,
             "is_saved": True

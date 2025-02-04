@@ -10,6 +10,7 @@ class Recipe(BaseModel):
     source_url: Optional[str] = None
     images: List[Optional[str]] = []
     total_time: Optional[int] = None
+    servings: Optional[int] = 4  # Default to 4 servings if not provided
     tags: List[str] = []
     hash: str
     is_saved: bool = False

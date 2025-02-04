@@ -85,6 +85,20 @@ class AllrecipesCrawlerSpider(scrapy.Spider):
             # Extract title
             title = response.css('title::text').get().strip().replace(' Recipe', '')
 
+            # Extract servings
+            servings = 0
+            servings_text = response.css('.mm-recipes-details__item:contains("Servings") .mm-recipes-details__value::text').get()
+            if servings_text:
+                # Extract first number from the servings text
+                servings_match = re.search(r'\d+', servings_text.strip())
+                if servings_match:
+                    servings = int(servings_match.group())
+                    self.logger.info(f"Found servings: {servings}")
+                else:
+                    self.logger.warning(f"Could not parse servings number from: {servings_text}")
+            else:
+                self.logger.warning("No servings information found")
+
             # Extract ingredients with safer parsing
             ingredients = {}
             ingredient_elements = response.css('.mm-recipes-structured-ingredients__list-item')
@@ -136,6 +150,7 @@ class AllrecipesCrawlerSpider(scrapy.Spider):
             # Create recipe data
             recipe_data = {
                 'title': title,
+                'servings': servings,
                 'ingredients': ingredients,
                 'steps': steps,
                 'source_url': response.url,

@@ -149,7 +149,7 @@ async def get_next_recipe(session_id: UUID, db: Session = Depends(get_db)):
     # Check if recipe is saved
     is_saved = db.query(SavedRecipe).filter(SavedRecipe.recipe_id == selected_recipe.id).first() is not None
 
-    # Create response with is_saved field
+    # Create response with is_saved field and servings
     recipe_dict = {
         "id": selected_recipe.id,
         "title": selected_recipe.title,
@@ -158,6 +158,7 @@ async def get_next_recipe(session_id: UUID, db: Session = Depends(get_db)):
         "source_url": selected_recipe.source_url,
         "images": selected_recipe.images,
         "total_time": selected_recipe.total_time,
+        "servings": selected_recipe.servings,  # Added servings field
         "tags": selected_recipe.tags,
         "hash": selected_recipe.hash,
         "is_saved": is_saved
