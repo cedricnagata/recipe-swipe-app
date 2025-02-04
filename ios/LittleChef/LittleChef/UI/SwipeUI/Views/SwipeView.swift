@@ -113,6 +113,14 @@ struct SwipeView: View {
         }
         .navigationTitle("Recipe Discovery")
         .navigationBarTitleDisplayMode(.inline)
+        // Only hide back button after session has started
+        .navigationBarBackButtonHidden(viewModel.sessionStarted)
+        .toolbar {
+            ToolbarItem(placement: .principal) {
+                Text("Recipe Discovery")
+                    .font(.headline)
+            }
+        }
         .alert("Error", isPresented: .constant(viewModel.error != nil)) {
             Button("OK") {
                 viewModel.error = nil
