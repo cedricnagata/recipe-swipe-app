@@ -11,6 +11,7 @@ struct RecipeDTO: Codable {
     let tags: [String]
     let hash: String
     let isSaved: Bool
+    let servings: Int?
 }
 
 struct NextRecipeResponse: Codable {

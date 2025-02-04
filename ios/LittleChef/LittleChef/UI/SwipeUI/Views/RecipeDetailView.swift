@@ -5,6 +5,19 @@ struct RecipeDetailView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var currentImageIndex = 0
     
+    var timeFormatted: String {
+        guard let time = recipe.totalTime else { return "" }
+        if time >= 60 {
+            let hours = time / 60
+            let minutes = time % 60
+            if minutes == 0 {
+                return "\(hours)h"
+            }
+            return "\(hours)h \(minutes)m"
+        }
+        return "\(time)m"
+    }
+    
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
@@ -30,6 +43,25 @@ struct RecipeDetailView: View {
                     Text(recipe.title)
                         .font(.title)
                         .fontWeight(.bold)
+                    
+                    // Recipe Info
+                    HStack(spacing: 16) {
+                        HStack {
+                            Image(systemName: "person.2.fill")
+                            Text("\(recipe.servings) servings")
+                        }
+                        
+                        if let _ = recipe.totalTime {
+                            HStack {
+                                Image(systemName: "clock.fill")
+                                Text(timeFormatted)
+                            }
+                        }
+                        
+                        Spacer()
+                    }
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
                     
                     // Ingredients Section
                     VStack(alignment: .leading, spacing: 12) {

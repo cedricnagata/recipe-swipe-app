@@ -2,8 +2,6 @@ import SwiftUI
 
 struct SavedRecipesView: View {
     @StateObject private var viewModel = SavedRecipesViewModel()
-    @State private var selectedRecipe: Recipe?
-    @State private var showingCookingView = false
     
     var body: some View {
         Group {
@@ -26,9 +24,8 @@ struct SavedRecipesView: View {
             } else {
                 List {
                     ForEach(viewModel.recipes) { recipe in
-                        SavedRecipeCard(recipe: recipe) {
-                            selectedRecipe = recipe
-                            showingCookingView = true
+                        NavigationLink(destination: LittleChefModeView(recipe: recipe)) {
+                            SavedRecipeCard(recipe: recipe)
                         }
                         .listRowInsets(EdgeInsets())
                         .listRowSeparator(.hidden)
@@ -46,11 +43,6 @@ struct SavedRecipesView: View {
         .onAppear {
             Task {
                 await viewModel.fetchSavedRecipes()
-            }
-        }
-        .sheet(isPresented: $showingCookingView) {
-            if let recipe = selectedRecipe {
-                CookingView(recipe: recipe)
             }
         }
         .alert("Error", isPresented: .constant(viewModel.error != nil)) {
@@ -75,7 +67,6 @@ struct SavedRecipesView: View {
 
 struct SavedRecipeCard: View {
     let recipe: Recipe
-    let onCookTapped: () -> Void
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -122,16 +113,14 @@ struct SavedRecipeCard: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 
-                Button(action: onCookTapped) {
-                    Label("Cook with Little Chef", systemImage: "figure.2.and.child.holdinghands")
-                        .font(.callout)
-                        .fontWeight(.semibold)
-                        .foregroundStyle(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 12)
-                        .background(Color.green)
-                        .clipShape(RoundedRectangle(cornerRadius: 8))
-                }
+                Label("Cook with Little Chef", systemImage: "figure.2.and.child.holdinghands")
+                    .font(.callout)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 12)
+                    .background(Color.green)
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
             }
             .padding(.horizontal, 4)
         }
@@ -140,52 +129,6 @@ struct SavedRecipeCard: View {
             RoundedRectangle(cornerRadius: 16)
                 .fill(Color(.systemBackground))
                 .shadow(radius: 2, y: 1)
-        }
-    }
-}
-
-// Placeholder for our new cooking view
-struct CookingView: View {
-    let recipe: Recipe
-    @Environment(\.dismiss) private var dismiss
-    
-    var body: some View {
-        NavigationStack {
-            VStack(spacing: 20) {
-                Text("Ready to cook \(recipe.title)?")
-                    .font(.title2)
-                    .fontWeight(.semibold)
-                    .multilineTextAlignment(.center)
-                    .padding(.top)
-                
-                Text("I'll guide you through each step")
-                    .foregroundStyle(.secondary)
-                
-                Button(action: {
-                    // TODO: Start cooking session
-                }) {
-                    Text("Start Cooking")
-                        .font(.headline)
-                        .foregroundStyle(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.green)
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
-                        .padding(.horizontal)
-                }
-                
-                Spacer()
-            }
-            .padding()
-            .navigationTitle("Little Chef")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") {
-                        dismiss()
-                    }
-                }
-            }
         }
     }
 }

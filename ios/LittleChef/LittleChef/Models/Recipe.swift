@@ -8,6 +8,8 @@ struct Recipe: Identifiable {
     let sourceUrl: String
     let images: [String?]
     let isSaved: Bool
+    let servings: Int
+    let totalTime: Int?
     
     var mainImage: String? {
         images.first ?? nil
@@ -31,7 +33,9 @@ extension RecipeDTO {
             steps: steps,
             sourceUrl: sourceUrl,
             images: images,
-            isSaved: isSaved
+            isSaved: isSaved,
+            servings: servings ?? 4,  // Default to 4 servings if not provided by backend
+            totalTime: totalTime
         )
     }
 }
