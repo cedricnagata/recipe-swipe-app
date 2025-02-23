@@ -20,7 +20,7 @@ struct LittleChefModeView: View {
             TimersView()
                 .tag(2)
         }
-        .tabViewStyle(.page(indexDisplayMode: .always))
+        .tabViewStyle(.page(indexDisplayMode: .never))
         .navigationBarTitleDisplayMode(.inline)
         .navigationTitle(viewModel.recipe.title)
         .navigationBarBackButtonHidden()
@@ -49,27 +49,19 @@ struct LittleChefModeView: View {
                isPresented: $actionCoordinator.showingTemperatureAlert,
                presenting: actionCoordinator.currentTemperatureAction) { action in
             Button("OK") {
-                // Dismiss alert
-                viewModel.removeSuggestedAction(action)
+                if let action = actionCoordinator.currentTemperatureAction {
+                    viewModel.removeSuggestedAction(action)
+                }
             }
         } message: { action in
             if let value = action.value {
                 Text("Set \(action.appliance.lowercased()) to \(value)°F\n\n\(action.description)")
             }
         }
-        .onChange(of: viewModel.selectedTab) { newTab in
-            // If switching to timers tab, automatically start any pending timer
-            if newTab == 2 {
-                viewModel.suggestedActions
-                    .filter { $0.type == .timer }
-                    .forEach { actionCoordinator.handleAction($0) }
-                viewModel.suggestedActions.removeAll()
-            }
-        }
     }
 }
 
-private struct RecipeStepsView: View {
+struct RecipeStepsView: View {
     @ObservedObject var viewModel: LittleChefModeViewModel
     @ObservedObject var actionCoordinator = ActionCoordinator.shared
     

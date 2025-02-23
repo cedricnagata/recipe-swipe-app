@@ -3,14 +3,14 @@ import SwiftUI
 struct ChefChatView: View {
     @StateObject private var viewModel: ChefChatViewModel
     @StateObject private var actionCoordinator = ActionCoordinator.shared
-    @FocusState private var isFocused: Bool
     
     init(recipe: Recipe, sessionId: UUID?) {
         _viewModel = StateObject(wrappedValue: ChefChatViewModel(recipe: recipe, sessionId: sessionId))
     }
     
     var body: some View {
-        VStack(spacing: 0) {
+        ZStack(alignment: .bottom) {
+            // Main chat content
             ScrollViewReader { proxy in
                 ScrollView {
                     LazyVStack(spacing: 16) {
@@ -53,48 +53,72 @@ struct ChefChatView: View {
                     }
                 }
             }
+            .padding(.bottom, 60)  // Space for input bar
             
-            Divider()
-            
-            // Input Area
-            HStack(spacing: 12) {
-                TextField("Ask Little Chef...", text: $viewModel.inputMessage, axis: .vertical)
-                    .textFieldStyle(.roundedBorder)
-                    .focused($isFocused)
-                    .lineLimit(1...5)
-                
-                Button(action: {
-                    viewModel.sendMessage()
-                    isFocused = false
-                }) {
-                    Image(systemName: "arrow.up.circle.fill")
-                        .font(.system(size: 24))
-                        .foregroundColor(
-                            viewModel.inputMessage.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-                            ? Color.secondary
-                            : Color.blue
-                        )
-                }
-                .disabled(viewModel.inputMessage.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-            }
-            .padding(.horizontal)
-            .padding(.vertical, 8)
-            .background(.ultraThinMaterial)
-        }
-        .onTapGesture {
-            isFocused = false
+            // Input bar
+            ChatInputBar(onSend: { text in
+                viewModel.sendMessage(text)
+            })
         }
         .alert("Temperature Setting",
                isPresented: $actionCoordinator.showingTemperatureAlert,
                presenting: actionCoordinator.currentTemperatureAction) { action in
             Button("OK") {
-                // Dismiss alert
+                if let action = actionCoordinator.currentTemperatureAction {
+                    viewModel.suggestedActions.removeAll { $0.id == action.id }
+                }
             }
         } message: { action in
             if let value = action.value {
                 Text("Set \(action.appliance.lowercased()) to \(value)°F\n\n\(action.description)")
             }
         }
+    }
+}
+
+struct ChatInputBar: View {
+    @State private var messageText: String = ""
+    @FocusState private var isFocused: Bool
+    let onSend: (String) -> Void
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            Divider()
+            
+            HStack(spacing: 12) {
+                TextField("Ask Little Chef...", text: $messageText)
+                    .textFieldStyle(PlainTextFieldStyle())  // Changed from .roundedBorder
+                    .padding(10)
+                    .background(Color(.systemGray6))
+                    .cornerRadius(10)
+                    .focused($isFocused)
+                    .submitLabel(.send)
+                    .onSubmit(sendMessage)
+                
+                Button(action: sendMessage) {
+                    Image(systemName: "arrow.up.circle.fill")
+                        .font(.system(size: 24))
+                        .foregroundColor(
+                            messageText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                            ? Color.secondary
+                            : Color.blue
+                        )
+                }
+                .disabled(messageText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+            }
+            .padding(.horizontal)
+            .padding(.vertical, 8)
+        }
+        .frame(height: 60)
+        .background(.ultraThinMaterial)
+    }
+    
+    private func sendMessage() {
+        let trimmedText = messageText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedText.isEmpty else { return }
+        onSend(trimmedText)
+        messageText = ""
+        isFocused = true  // Keep focus after sending
     }
 }
 
