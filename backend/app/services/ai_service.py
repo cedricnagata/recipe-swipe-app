@@ -39,7 +39,21 @@ Example response format:
 Only return valid JSON containing actions that have explicit numeric values. Do not include actions for descriptive temperatures like "medium heat" or "low heat"."""
 
     def _create_chat_prompt(self, recipe: Dict[str, Any], current_step: int, conversation_history: List[Dict], user_message: str) -> str:
-        step = recipe["steps"][current_step]
+        # Compile full recipe context
+        full_context = f"Recipe: {recipe.get('title', 'Untitled Recipe')}\n\n"
+        
+        # Add full list of steps
+        full_context += "All Recipe Steps:\n"
+        for i, step in enumerate(recipe.get('steps', [])):
+            full_context += f"{i+1}. {step}\n"
+        
+        # Add ingredients with amounts
+        full_context += "\nIngredients:\n"
+        for ingredient, amount in recipe.get('ingredients', {}).items():
+            full_context += f"- {ingredient}: {amount}\n"
+        
+        # Current step details
+        current_step_text = recipe["steps"][current_step] if current_step < len(recipe["steps"]) else "No current step"
         
         # Format conversation history
         formatted_history = "\n".join([
@@ -47,10 +61,13 @@ Only return valid JSON containing actions that have explicit numeric values. Do 
             for msg in conversation_history[-5:]  # Only include last 5 messages for context
         ])
 
-        return f"""You are Little Chef, an AI cooking assistant helping someone cook a recipe. 
-You should be friendly, helpful, and knowledgeable about cooking.
+        return f"""You are Little Chef, an AI cooking assistant helping someone cook a detailed recipe.
+You have access to the full recipe context and current step.
 
-Current recipe step: "{step}"
+{full_context}
+
+Current detailed recipe context:
+Current step: "{current_step_text}"
 
 Previous conversation:
 {formatted_history}
