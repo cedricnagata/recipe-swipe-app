@@ -2,10 +2,11 @@ import SwiftUI
 
 struct ChefChatView: View {
     @StateObject private var viewModel: ChefChatViewModel
+    @StateObject private var actionCoordinator = ActionCoordinator.shared
     @FocusState private var isFocused: Bool
     
-    init(recipe: Recipe) {
-        _viewModel = StateObject(wrappedValue: ChefChatViewModel(recipe: recipe))
+    init(recipe: Recipe, sessionId: UUID?) {
+        _viewModel = StateObject(wrappedValue: ChefChatViewModel(recipe: recipe, sessionId: sessionId))
     }
     
     var body: some View {
@@ -20,6 +21,26 @@ struct ChefChatView: View {
                         
                         if viewModel.isLoading {
                             TypingIndicator()
+                        }
+                        
+                        if !viewModel.suggestedActions.isEmpty {
+                            VStack(alignment: .leading, spacing: 16) {
+                                Text("Suggested Actions")
+                                    .font(.headline)
+                                    .padding(.horizontal)
+                                
+                                ForEach(viewModel.suggestedActions) { action in
+                                    ActionCard(action: action) {
+                                        actionCoordinator.handleAction(action)
+                                        // Remove timer action after handling
+                                        if action.type == .timer {
+                                            viewModel.suggestedActions.removeAll { $0.id == action.id }
+                                        }
+                                    }
+                                    .padding(.horizontal)
+                                }
+                            }
+                            .padding(.vertical)
                         }
                     }
                     .padding()
@@ -63,6 +84,17 @@ struct ChefChatView: View {
         .onTapGesture {
             isFocused = false
         }
+        .alert("Temperature Setting",
+               isPresented: $actionCoordinator.showingTemperatureAlert,
+               presenting: actionCoordinator.currentTemperatureAction) { action in
+            Button("OK") {
+                // Dismiss alert
+            }
+        } message: { action in
+            if let value = action.value {
+                Text("Set \(action.appliance.lowercased()) to \(value)°F\n\n\(action.description)")
+            }
+        }
     }
 }
 
@@ -82,7 +114,6 @@ struct MessageBubble: View {
                     .foregroundColor(message.sender == .user ? .white : .primary)
                     .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                 
-                // Optional: Add timestamp
                 Text(message.timestamp.formatted(date: .omitted, time: .shortened))
                     .font(.caption2)
                     .foregroundColor(.secondary)
@@ -120,21 +151,5 @@ struct TypingIndicator: View {
                 animationStep = (animationStep + 1) % 3
             }
         }
-    }
-}
-
-#Preview {
-    NavigationStack {
-        ChefChatView(recipe: Recipe(
-            id: UUID(),
-            title: "Test Recipe",
-            ingredients: ["Ingredient": "1 cup"],
-            steps: ["Step 1"],
-            sourceUrl: "",
-            images: [],
-            isSaved: true,
-            servings: 4,
-            totalTime: 30
-        ))
     }
 }

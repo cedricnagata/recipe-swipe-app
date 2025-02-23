@@ -4,6 +4,7 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
+openai = "*"
 uvicorn = "*"
 sqlalchemy = "*"
 psycopg2-binary = "*"

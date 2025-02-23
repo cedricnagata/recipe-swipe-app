@@ -8,6 +8,9 @@ class Settings(BaseSettings):
     POSTGRES_DB: str
     POSTGRES_HOST: str
     POSTGRES_PORT: str
+    
+    # OpenAI settings
+    OPENAI_API_KEY: str
 
     @property
     def DATABASE_URL(self) -> str:

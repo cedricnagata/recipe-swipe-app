@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct TimersView: View {
-    @StateObject private var viewModel = TimerViewModel()
+    @StateObject private var timerService = TimerService.shared
     @State private var showingAddTimer = false
     @State private var selectedAppliance: KitchenAppliance = .other
     @State private var timerLabel = ""
@@ -11,15 +11,15 @@ struct TimersView: View {
         ScrollView {
             VStack(spacing: 24) {
                 // Active Timers
-                ForEach(viewModel.timers) { timer in
+                ForEach(timerService.timers) { timer in
                     TimerCard(timer: timer) { action in
                         switch action {
                         case .toggle:
-                            viewModel.toggleTimer(timer.id)
+                            timerService.toggleTimer(timer.id)
                         case .reset:
-                            viewModel.resetTimer(timer.id)
+                            timerService.resetTimer(timer.id)
                         case .delete:
-                            viewModel.deleteTimer(timer.id)
+                            timerService.deleteTimer(timer.id)
                         }
                     }
                 }
@@ -84,11 +84,17 @@ struct TimersView: View {
                     
                     ToolbarItem(placement: .confirmationAction) {
                         Button("Add") {
-                            viewModel.addTimer(
+                            // Add the timer
+                            let newTimer = KitchenTimer(
                                 appliance: selectedAppliance,
                                 label: timerLabel.isEmpty ? "Timer" : timerLabel,
-                                minutes: timerDuration
+                                duration: timerDuration * 60,
+                                timeRemaining: timerDuration * 60,
+                                isRunning: false,
+                                isComplete: false
                             )
+                            timerService.timers.append(newTimer)
+                            
                             showingAddTimer = false
                             timerLabel = ""
                             timerDuration = 5

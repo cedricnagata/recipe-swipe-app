@@ -1,56 +1,69 @@
 import Foundation
 import SwiftUI
 
+@MainActor
 class ChefChatViewModel: ObservableObject {
-    let recipe: Recipe
     @Published var messages: [ChatMessage] = []
-    @Published var inputMessage: String = ""
-    @Published var isLoading: Bool = false
+    @Published var inputMessage = ""
+    @Published var isLoading = false
+    @Published var suggestedActions: [StepAction] = []
     
-    init(recipe: Recipe) {
+    private let recipe: Recipe
+    private let cookingSessionService = CookingSessionService()
+    private let sessionId: UUID?
+    
+    init(recipe: Recipe, sessionId: UUID?) {
         self.recipe = recipe
-        sendWelcomeMessage()
-    }
-    
-    private func sendWelcomeMessage() {
-        let welcomeMessage = """
-        Hi! I'm your AI cooking assistant and I'm here to help you cook \(recipe.title)! 
-        
-        I can help you with:
-        • Understanding recipe steps
-        • Ingredient substitutions
-        • Cooking techniques
-        • Timing and temperature
-        
-        What would you like to know?
-        """
-        
-        messages.append(ChatMessage(content: welcomeMessage, sender: .assistant))
+        self.sessionId = sessionId
     }
     
     func sendMessage() {
-        guard !inputMessage.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
+        guard !inputMessage.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+              let sessionId = sessionId else { return }
         
-        let userMessage = ChatMessage(content: inputMessage, sender: .user)
-        messages.append(userMessage)
-        
-        // Store the message and clear input
-        let messageToProcess = inputMessage
+        let messageText = inputMessage
         inputMessage = ""
         
-        // TODO: Implement actual AI response
+        // Add user message immediately
+        let userMessage = ChatMessage(
+            content: messageText,
+            sender: .user
+        )
+        messages.append(userMessage)
+        
+        // Show loading indicator
         isLoading = true
         
-        // Simulate AI response for now
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in
-            self?.isLoading = false
-            self?.simulateResponse(to: messageToProcess)
+        // Send to API
+        Task {
+            do {
+                let response = try await cookingSessionService.sendMessage(
+                    sessionId: sessionId,
+                    message: messageText
+                )
+                
+                // Add AI response
+                let aiMessage = ChatMessage(
+                    content: response.message,
+                    sender: .assistant
+                )
+                messages.append(aiMessage)
+                
+                // Update suggested actions if any
+                if let actions = response.suggestedActions {
+                    suggestedActions = actions
+                }
+            } catch {
+                // Add error message
+                let errorMessage = ChatMessage(
+                    content: "Sorry, I'm having trouble responding right now. Please try again.",
+                    sender: .assistant
+                )
+                messages.append(errorMessage)
+                print("Error sending message: \(error)")
+            }
+            
+            isLoading = false
         }
-    }
-    
-    // Temporary function until we integrate with the actual AI
-    private func simulateResponse(to message: String) {
-        let response = "I understand you're asking about '\(message)'. I'm currently being implemented and will be able to help you with your cooking questions soon!"
-        messages.append(ChatMessage(content: response, sender: .assistant))
     }
 }

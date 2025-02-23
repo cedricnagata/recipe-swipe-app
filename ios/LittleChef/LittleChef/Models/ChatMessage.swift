@@ -1,11 +1,11 @@
 import Foundation
 
-enum MessageSender {
+enum MessageSender: String, Codable {
     case user
     case assistant
 }
 
-struct ChatMessage: Identifiable {
+struct ChatMessage: Identifiable, Codable {
     let id = UUID()
     let content: String
     let sender: MessageSender
@@ -15,5 +15,12 @@ struct ChatMessage: Identifiable {
         self.content = content
         self.sender = sender
         self.timestamp = timestamp
+    }
+    
+    enum CodingKeys: String, CodingKey {
+        case id
+        case content
+        case sender = "role"
+        case timestamp
     }
 }
