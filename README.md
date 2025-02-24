@@ -8,25 +8,38 @@ Little Chef is an innovative iOS application that combines recipe discovery with
 
 ## Key Features
 
-- 🍲 Extensive Recipe Database
-- 🤖 AI-Powered Cooking Assistant
-- 📱 Intuitive User Interface
-- 🔍 Advanced Recipe Search
-- 📋 Step-by-Step Cooking Guidance
+- Extensive Recipe Database
+- AI-Powered Cooking Assistant
+- Intuitive User Interface
+- Advanced Recipe Search
+- Step-by-Step Cooking Guidance
 
 ## Screenshots
 
-### Home Screen
-![Home Screen](images/Screenshot%202025-02-23%20at%204.33.17%20PM.png)
+### App Interface Collection
 
-### Recipe Browser
-![Recipe Browser](images/Screenshot%202025-02-23%20at%204.33.22%20PM.png)
+### Home Page
 
-### AI Cooking Assistant
-![AI Cooking Assistant](images/Screenshot%202025-02-23%20at%204.35.00%20PM.png)
+<p float="left">
+  <img src="images/Screenshot 2025-02-23 at 4.33.17 PM.png" width="200" />
+</p>
 
-### Recipe Details
-![Recipe Details](images/Screenshot%202025-02-23%20at%204.35.24%20PM.png)
+### Recipe Discovery
 
-### Search Functionality
-![Search Functionality](images/Screenshot%202025-02-23%20at%204.36.01%20PM.png)
+<p float="left">
+  <img src="images/Screenshot 2025-02-23 at 4.33.22 PM.png" width="200" />
+  <img src="images/Screenshot 2025-02-23 at 4.33.41 PM.png" width="200" />
+  <img src="images/Screenshot 2025-02-23 at 4.35.00 PM.png" width="200" />
+  <img src="images/Screenshot 2025-02-23 at 4.35.24 PM.png" width="200" />
+</p>
+
+### Cook with LittleChef
+
+<p float="left">
+  <img src="images/Screenshot 2025-02-23 at 4.35.33 PM.png" width="200" />
+  <img src="images/Screenshot 2025-02-23 at 4.35.39 PM.png" width="200" />
+  <img src="images/Screenshot 2025-02-23 at 4.36.01 PM.png" width="200" />
+  <img src="images/Screenshot 2025-02-23 at 4.36.40 PM.png" width="200" />
+  <img src="images/Screenshot 2025-02-23 at 4.37.30 PM.png" width="200" />
+  <img src="images/Screenshot 2025-02-23 at 4.37.35 PM.png" width="200" />
+</p>
