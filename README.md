@@ -14,9 +14,7 @@ Little Chef is an innovative iOS application that combines recipe discovery with
 - Advanced Recipe Search
 - Step-by-Step Cooking Guidance
 
-## Screenshots
-
-### App Interface Collection
+## App Interface Collection
 
 ### Home Page
 
